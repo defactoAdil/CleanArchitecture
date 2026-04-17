@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home.component';
 import { CounterComponent } from './counter/counter.component';
 import { WeatherComponent } from './weather/weather.component';
 import { TasksComponent } from './todo/todo.component';
+import { EmployeesComponent } from './employees/employees.component';
 import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { API_BASE_URL } from './web-api-client';
 import { AuthorizeInterceptor } from 'src/api-authorization/authorize.interceptor';
@@ -32,6 +33,7 @@ export function getApiBaseUrl(): string {
         CounterComponent,
         WeatherComponent,
         TasksComponent,
+        EmployeesComponent,
         ThemeToggleComponent,
         LoginComponent,
         RegisterComponent
@@ -46,6 +48,7 @@ export function getApiBaseUrl(): string {
             { path: 'counter', component: CounterComponent },
             { path: 'weather', component: WeatherComponent, canActivate: [AuthGuard] },
             { path: 'todo', component: TasksComponent, canActivate: [AuthGuard] },
+            { path: 'employees', component: EmployeesComponent, canActivate: [AuthGuard] },
             { path: 'login', component: LoginComponent },
             { path: 'register', component: RegisterComponent }
         ])

@@ -1,0 +1,272 @@
+<hgroup>
+  <h1>Employees</h1>
+  <p>Search and manage HR employees.</p>
+</hgroup>
+
+<!-- ── Search form ─────────────────────────────────────────────────────────── -->
+<article class="emp-search-card">
+  <header>
+    <h3>Search</h3>
+  </header>
+
+  <div class="emp-search-grid">
+    <label>
+      Registration No
+      <input type="text" placeholder="e.g. 000001"
+        [(ngModel)]="filter.registrationNumber" (keyup.enter)="search()" />
+    </label>
+    <label>
+      Identity No
+      <input type="text" placeholder="11-digit ID"
+        [(ngModel)]="filter.identityNumber" (keyup.enter)="search()" />
+    </label>
+    <label>
+      First Name
+      <input type="text" placeholder="First name"
+        [(ngModel)]="filter.firstName" (keyup.enter)="search()" />
+    </label>
+    <label>
+      Last Name
+      <input type="text" placeholder="Last name"
+        [(ngModel)]="filter.lastName" (keyup.enter)="search()" />
+    </label>
+    <label>
+      Status
+      <select [(ngModel)]="filter.activePassiveCode">
+        <option value="">All</option>
+        @for (code of activePassiveCodes(); track code.code) {
+          <option [value]="code.code">{{ code.definition }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Terminated
+      <select [(ngModel)]="filter.isTerminated">
+        <option [ngValue]="null">All</option>
+        <option [ngValue]="false">Active</option>
+        <option [ngValue]="true">Terminated</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Source type multi-select -->
+  @if (sourceTypes().length) {
+    <div class="emp-source-types">
+      <small>Source Types</small>
+      <div class="emp-source-chips">
+        @for (st of sourceTypes(); track st.value) {
+          <button type="button" class="emp-chip"
+            [class.emp-chip-selected]="isSourceTypeSelected(st.value!)"
+            (click)="toggleSourceType(st.value!)">
+            {{ st.label }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (searchError()) {
+    <small class="error">{{ searchError() }}</small>
+  }
+
+  <footer>
+    <button class="secondary" (click)="clearSearch()" type="button">Clear</button>
+    <button (click)="search()" [attr.aria-busy]="loadingSearch() || null" type="button">Search</button>
+    <button (click)="showCreateDialog()" type="button" style="margin-inline-start: auto">+ New Employee</button>
+  </footer>
+</article>
+
+<!-- ── Results table ──────────────────────────────────────────────────────────── -->
+@if (hasSearched()) {
+  @if (loadingSearch()) {
+    <p aria-busy="true">Searching&hellip;</p>
+  } @else if (employees()?.length === 0) {
+    <p class="emp-empty">No employees found matching your criteria.</p>
+  } @else if (employees()?.length) {
+    <div class="emp-table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Reg. No</th>
+            <th>Name</th>
+            <th>Identity No</th>
+            <th>Source Type</th>
+            <th>Status</th>
+            <th>Terminated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (emp of employees()!; track emp.id) {
+            <tr>
+              <td><code>{{ emp.registrationNumber }}</code></td>
+              <td>{{ emp.firstname }} {{ emp.lastname }}</td>
+              <td>{{ emp.identityNumber }}</td>
+              <td>{{ emp.sourceTypeStr }}</td>
+              <td>
+                <span [class]="emp.activePassiveCode === '1' ? 'emp-badge emp-badge-active' : 'emp-badge emp-badge-passive'">
+                  {{ emp.activePassiveDefinition }}
+                </span>
+              </td>
+              <td>{{ emp.isTerminated ? 'Yes' : 'No' }}</td>
+              <td>
+                @if (emp.canEdit) {
+                  <button class="secondary emp-action-btn" (click)="showEditDialog(emp)" type="button">Edit</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <small>{{ employees()!.length }} record(s) found.</small>
+  }
+}
+
+<!-- ── Create / Edit dialog ──────────────────────────────────────────────────── -->
+<dialog #employeeDialog>
+  <article class="emp-dialog-article">
+    <header>
+      <h3>{{ dialogTitle() }}</h3>
+      <button rel="prev" aria-label="Close" (click)="closeDialog()"></button>
+    </header>
+
+    <!-- Global form errors -->
+    @if (hasAnyError() && fieldError('_')) {
+      <p class="error">{{ fieldError('_') }}</p>
+    }
+
+    <div class="emp-form-grid">
+
+      <!-- Registration Number (always readonly) -->
+      <label>
+        Registration No
+        <input type="text" [value]="form.registrationNumber"
+          [attr.aria-busy]="loadingNextRegNo() || null"
+          readonly aria-readonly="true" />
+      </label>
+
+      <!-- Identity Number -->
+      <label>
+        Identity No <span class="required">*</span>
+        <input type="text" placeholder="Up to 11 digits"
+          [(ngModel)]="form.identityNumber" maxlength="11"
+          [attr.aria-invalid]="fieldError('IdentityNumber') ? 'true' : null" />
+        @if (fieldError('IdentityNumber')) {
+          <small class="error">{{ fieldError('IdentityNumber') }}</small>
+        }
+      </label>
+
+      <!-- First Name -->
+      <label>
+        First Name <span class="required">*</span>
+        <input type="text" placeholder="First name"
+          [(ngModel)]="form.firstname" maxlength="100"
+          [attr.aria-invalid]="fieldError('Firstname') ? 'true' : null" />
+        @if (fieldError('Firstname')) {
+          <small class="error">{{ fieldError('Firstname') }}</small>
+        }
+      </label>
+
+      <!-- Last Name -->
+      <label>
+        Last Name <span class="required">*</span>
+        <input type="text" placeholder="Last name"
+          [(ngModel)]="form.lastname" maxlength="100"
+          [attr.aria-invalid]="fieldError('Lastname') ? 'true' : null" />
+        @if (fieldError('Lastname')) {
+          <small class="error">{{ fieldError('Lastname') }}</small>
+        }
+      </label>
+
+      <!-- Source Type -->
+      <label>
+        Source Type <span class="required">*</span>
+        <select [(ngModel)]="form.sourceTypeStr" (ngModelChange)="onSourceTypeChange()"
+          [attr.aria-invalid]="fieldError('SourceTypeStr') ? 'true' : null">
+          <option value="">Select…</option>
+          @for (st of sourceTypes(); track st.value) {
+            <option [value]="st.value">{{ st.label }}</option>
+          }
+        </select>
+        @if (fieldError('SourceTypeStr')) {
+          <small class="error">{{ fieldError('SourceTypeStr') }}</small>
+        }
+      </label>
+
+      <!-- Active/Passive -->
+      <label>
+        Status <span class="required">*</span>
+        <select [(ngModel)]="form.activePassiveCode"
+          [attr.aria-invalid]="fieldError('ActivePassiveCode') ? 'true' : null">
+          @for (code of activePassiveCodes(); track code.code) {
+            <option [value]="code.code">{{ code.definition }}</option>
+          }
+        </select>
+        @if (fieldError('ActivePassiveCode')) {
+          <small class="error">{{ fieldError('ActivePassiveCode') }}</small>
+        }
+      </label>
+
+      <!-- Mobile -->
+      <label>
+        Mobile (90XXXXXXXXXXX)
+        <input type="text" placeholder="90XXXXXXXXXX"
+          [(ngModel)]="form.personalMobileNumber" maxlength="12"
+          [attr.aria-invalid]="fieldError('PersonalMobileNumber') ? 'true' : null" />
+        @if (fieldError('PersonalMobileNumber')) {
+          <small class="error">{{ fieldError('PersonalMobileNumber') }}</small>
+        }
+      </label>
+
+      <!-- Company Name -->
+      <label>
+        Company Name @if (isEditing()) { <span class="required">*</span> }
+        <input type="text" placeholder="Company name"
+          [(ngModel)]="form.companyName" maxlength="200"
+          [attr.aria-invalid]="fieldError('CompanyName') ? 'true' : null" />
+        @if (fieldError('CompanyName')) {
+          <small class="error">{{ fieldError('CompanyName') }}</small>
+        }
+      </label>
+
+      <!-- Business Unit ID — admin only -->
+      @if (isAdmin()) {
+        <label>
+          Business Unit ID
+          <input type="number" placeholder="Business unit ID"
+            [(ngModel)]="form.businessUnitId"
+            [attr.aria-invalid]="fieldError('BusinessUnitId') ? 'true' : null" />
+          @if (fieldError('BusinessUnitId')) {
+            <small class="error">{{ fieldError('BusinessUnitId') }}</small>
+          }
+        </label>
+      }
+
+      <!-- Is Terminated -->
+      <label class="emp-checkbox-label">
+        <input type="checkbox" [(ngModel)]="form.isTerminated" role="switch" />
+        Terminated
+      </label>
+
+    </div>
+
+    <!-- Description (full width) -->
+    <label>
+      Description @if (isEditing()) { <span class="required">*</span> } (min 20 chars when editing)
+      <textarea rows="3" placeholder="Enter a description…"
+        [(ngModel)]="form.description"
+        [attr.aria-invalid]="fieldError('Description') ? 'true' : null"></textarea>
+      @if (fieldError('Description')) {
+        <small class="error">{{ fieldError('Description') }}</small>
+      }
+    </label>
+
+    <footer>
+      <button class="secondary" (click)="closeDialog()" type="button">Cancel</button>
+      <button (click)="save()" [attr.aria-busy]="savingEmployee() || null" type="button">
+        {{ isEditing() ? 'Update' : 'Create' }}
+      </button>
+    </footer>
+  </article>
+</dialog>

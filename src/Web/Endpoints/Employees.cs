@@ -13,7 +13,7 @@ public class Employees : IEndpointGroup
     {
         groupBuilder.RequireAuthorization();
 
-        groupBuilder.MapPost(SearchEmployees);
+        groupBuilder.MapPost(SearchEmployees, "search");
         groupBuilder.MapGet(GetEmployee, "{registrationNumber}");
         groupBuilder.MapGet(GetNextRegistrationNumber, "next-registration-number/{sourceType}");
         groupBuilder.MapPost(CreateEmployee, string.Empty);

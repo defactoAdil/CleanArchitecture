@@ -321,7 +321,162 @@ dialog article footer {
   gap: calc(var(--pico-spacing) * 0.5);
 }
 
-// ── Button variants (not compiled in classless mode — defined manually) ───────
+// ── Employee module ─────────────────────────────────────────────────────────────
+.emp-search-card {
+  margin-bottom: calc(var(--pico-block-spacing-vertical) * 1.5);
+
+  header h3 {
+    margin: 0;
+  }
+}
+
+.emp-search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--pico-spacing);
+  margin-bottom: var(--pico-spacing);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+
+    input, select {
+      margin: 0;
+    }
+  }
+}
+
+.emp-source-types {
+  margin-bottom: var(--pico-spacing);
+
+  small {
+    display: block;
+    color: var(--pico-muted-color);
+    margin-bottom: 0.4rem;
+  }
+}
+
+.emp-source-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.emp-chip {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--pico-muted-border-color);
+  background: transparent;
+  color: var(--pico-color);
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  --pico-form-element-spacing-vertical: 0;
+  --pico-form-element-spacing-horizontal: 0;
+  box-shadow: none;
+
+  &:hover {
+    border-color: var(--pico-primary);
+    color: var(--pico-primary);
+    background: transparent;
+  }
+
+  &.emp-chip-selected {
+    background: var(--pico-primary-background);
+    border-color: var(--pico-primary);
+    color: var(--pico-primary-inverse);
+  }
+}
+
+.emp-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: calc(var(--pico-spacing) * 0.5);
+
+  table {
+    width: 100%;
+    white-space: nowrap;
+  }
+}
+
+.emp-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  &.emp-badge-active {
+    background: color-mix(in srgb, var(--pico-ins-color) 18%, transparent);
+    color: var(--pico-ins-color);
+  }
+
+  &.emp-badge-passive {
+    background: color-mix(in srgb, var(--pico-muted-color) 15%, transparent);
+    color: var(--pico-muted-color);
+  }
+}
+
+.emp-action-btn {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+  --pico-form-element-spacing-vertical: 0.2rem;
+  --pico-form-element-spacing-horizontal: 0.6rem;
+}
+
+.emp-empty {
+  color: var(--pico-muted-color);
+  text-align: center;
+  padding: calc(var(--pico-block-spacing-vertical) * 2);
+}
+
+.emp-dialog-article {
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.emp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pico-spacing);
+  margin-bottom: var(--pico-spacing);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+
+    input, select {
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.emp-checkbox-label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: end;
+  padding-bottom: calc(var(--pico-form-element-spacing-vertical) * 0.5);
+
+  input[type="checkbox"] {
+    margin: 0;
+  }
+}
+
+.required {
+  color: var(--pico-del-color);
+}
+
 button.secondary,
 [type="submit"].secondary,
 [type="button"].secondary,
