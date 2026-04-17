@@ -1,15 +1,7 @@
-using CleanArchitecture.Domain.Enums;
-
 namespace CleanArchitecture.Application.Employees.Commands.UpdateEmployee;
 
 public class UpdateEmployeeCommandValidator : AbstractValidator<UpdateEmployeeCommand>
 {
-    private static readonly string[] RestrictedSourceTypes =
-    [
-        SourceType.SAP.ToString(),
-        SourceType.OzonTekstil.ToString()
-    ];
-
     public UpdateEmployeeCommandValidator()
     {
         RuleFor(c => c.RegistrationNumber)
@@ -39,9 +31,7 @@ public class UpdateEmployeeCommandValidator : AbstractValidator<UpdateEmployeeCo
             .NotEmpty();
 
         RuleFor(c => c.SourceTypeStr)
-            .NotEmpty()
-            .Must(st => !RestrictedSourceTypes.Contains(st))
-            .WithMessage("Source type cannot be changed to SAP or OzonTekstil.");
+            .NotEmpty();
 
         RuleFor(c => c.Description)
             .NotEmpty()
