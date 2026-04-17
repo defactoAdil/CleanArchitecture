@@ -69,10 +69,16 @@ public class ApplicationDbContextInitialiser
     {
         // Default roles
         var administratorRole = new IdentityRole(Roles.Administrator);
+        var hrAdminRole = new IdentityRole(Roles.HumanResourcesAdminSourceTypes);
 
         if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
         {
             await _roleManager.CreateAsync(administratorRole);
+        }
+
+        if (_roleManager.Roles.All(r => r.Name != hrAdminRole.Name))
+        {
+            await _roleManager.CreateAsync(hrAdminRole);
         }
 
         // Default users
