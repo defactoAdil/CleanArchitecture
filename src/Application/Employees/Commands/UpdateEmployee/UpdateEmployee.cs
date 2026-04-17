@@ -1,5 +1,6 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Security;
+using CleanArchitecture.Application.Employees.Common;
 using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Domain.Enums;
 
@@ -72,7 +73,7 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
         employee.Lastname = request.Lastname;
         employee.PersonalMobileNumber = request.PersonalMobileNumber;
         employee.SourceTypeStr = normalizedSourceType;
-        employee.ActivePassiveCode = NormalizeActivePassiveCode(request.ActivePassiveCode);
+        employee.ActivePassiveCode = ActivePassiveCodes.Normalize(request.ActivePassiveCode);
         employee.IsTerminated = request.IsTerminated;
         employee.CompanyName = request.CompanyName;
         employee.Description = request.Description;
@@ -85,7 +86,4 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
 
         await _context.SaveChangesAsync(cancellationToken);
     }
-
-    private static string NormalizeActivePassiveCode(string code) =>
-        code.Equals("active", StringComparison.OrdinalIgnoreCase) || code == "1" ? "1" : "0";
 }

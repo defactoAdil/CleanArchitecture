@@ -1,5 +1,6 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Security;
+using CleanArchitecture.Application.Employees.Common;
 using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Domain.Enums;
@@ -36,12 +37,6 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
     private readonly IEmployeeRegistrationNumberService _registrationNumberService;
     private readonly IUser _user;
 
-    private static readonly string[] RestrictedSourceTypes =
-    [
-        SourceType.SAP.ToString(),
-        SourceType.OzonTekstil.ToString()
-    ];
-
     public CreateEmployeeCommandHandler(
         IApplicationDbContext context,
         IEmployeeRegistrationNumberService registrationNumberService,
@@ -63,36 +58,44 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         var isAdmin = _user.Roles?.Contains(Roles.HumanResourcesAdminSourceTypes) ?? false;
         var businessUnitId = isAdmin ? request.BusinessUnitId : null;
 
-        // Generate unique registration number (race-condition safe via transaction)
-        var registrationNumber = await _registrationNumberService
-            .GenerateNextAsync(sourceType, cancellationToken);
-
-        var employee = new Employee
+        // Wrap number generation + INSERT in one transaction to prevent race conditions.
+        // The unique index on RegistrationNumber is the final safety net.
+        await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
+        try
         {
-            RegistrationNumber = registrationNumber,
-            IdentityNumber = request.IdentityNumber,
-            Firstname = request.Firstname,
-            Lastname = request.Lastname,
-            PersonalMobileNumber = request.PersonalMobileNumber,
-            SourceTypeStr = sourceType,
-            ActivePassiveCode = NormalizeActivePassiveCode(request.ActivePassiveCode),
-            IsTerminated = request.IsTerminated,
-            CompanyName = request.CompanyName,
-            BusinessUnitId = businessUnitId,
-            Description = request.Description
-        };
+            var registrationNumber = await _registrationNumberService
+                .GenerateNextAsync(sourceType, cancellationToken);
 
-        _context.Employees.Add(employee);
-        await _context.SaveChangesAsync(cancellationToken);
+            var employee = new Employee
+            {
+                RegistrationNumber = registrationNumber,
+                IdentityNumber = request.IdentityNumber,
+                Firstname = request.Firstname,
+                Lastname = request.Lastname,
+                PersonalMobileNumber = request.PersonalMobileNumber,
+                SourceTypeStr = sourceType,
+                ActivePassiveCode = ActivePassiveCodes.Normalize(request.ActivePassiveCode),
+                IsTerminated = request.IsTerminated,
+                CompanyName = request.CompanyName,
+                BusinessUnitId = businessUnitId,
+                Description = request.Description
+            };
 
-        return registrationNumber;
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return registrationNumber;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private string DefaultSourceType() =>
         (_user.Roles?.Contains(Roles.HumanResourcesAdminSourceTypes) ?? false)
             ? SourceType.Ecrou.ToString()
             : SourceType.Other.ToString();
-
-    private static string NormalizeActivePassiveCode(string code) =>
-        code.Equals("active", StringComparison.OrdinalIgnoreCase) || code == "1" ? "1" : "0";
 }

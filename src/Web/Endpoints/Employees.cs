@@ -79,17 +79,17 @@ public class Employees : IEndpointGroup
 
     [EndpointSummary("Get source type lookups")]
     [EndpointDescription("Returns the list of available source types filtered by the current user's role.")]
-    public static async Task<Ok<EmployeeLookupsVm>> GetSourceTypeLookups(ISender sender)
+    public static async Task<Ok<List<SourceTypeLookupDto>>> GetSourceTypeLookups(ISender sender)
     {
         var result = await sender.Send(new GetEmployeeLookupsQuery());
-        return TypedResults.Ok(result);
+        return TypedResults.Ok(result.SourceTypes);
     }
 
     [EndpointSummary("Get active/passive code lookups")]
     [EndpointDescription("Returns the list of available active/passive codes.")]
-    public static async Task<Ok<EmployeeLookupsVm>> GetActivePassiveCodeLookups(ISender sender)
+    public static async Task<Ok<List<ActivePassiveLookupDto>>> GetActivePassiveCodeLookups(ISender sender)
     {
         var result = await sender.Send(new GetEmployeeLookupsQuery());
-        return TypedResults.Ok(result);
+        return TypedResults.Ok(result.ActivePassiveCodes);
     }
 }

@@ -14,34 +14,20 @@ public class EmployeeRegistrationNumberService : IEmployeeRegistrationNumberServ
     }
 
     /// <summary>
-    /// Generates the next registration number within a transaction to prevent race conditions.
-    /// Uses pessimistic locking (read inside transaction) to ensure uniqueness.
+    /// Returns the next registration number for the given source type.
+    /// Call this method from within an open transaction (started via
+    /// IApplicationDbContext.BeginTransactionAsync) so that the number
+    /// computation and the subsequent INSERT are atomic.
     /// </summary>
-    public async Task<string> GenerateNextAsync(string sourceType, CancellationToken cancellationToken)
-    {
-        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            var next = await ComputeNextAsync(sourceType, cancellationToken);
-            // Transaction stays open until the caller commits via SaveChangesAsync.
-            // Committing here is safe because the INSERT happens in the same DbContext.
-            await transaction.CommitAsync(cancellationToken);
-            return next;
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
-    }
+    public Task<string> GenerateNextAsync(string sourceType, CancellationToken cancellationToken)
+        => ComputeNextAsync(sourceType, cancellationToken);
 
     /// <summary>
-    /// Returns a preview of the next number without a transaction — suitable for UI hints only.
+    /// Returns a preview of the next registration number without reserving it.
+    /// Not safe for concurrent use — use GenerateNextAsync (inside a transaction) during actual insert.
     /// </summary>
-    public async Task<string> PeekNextAsync(string sourceType, CancellationToken cancellationToken)
-    {
-        return await ComputeNextAsync(sourceType, cancellationToken);
-    }
+    public Task<string> PeekNextAsync(string sourceType, CancellationToken cancellationToken)
+        => ComputeNextAsync(sourceType, cancellationToken);
 
     private async Task<string> ComputeNextAsync(string sourceType, CancellationToken cancellationToken)
     {
