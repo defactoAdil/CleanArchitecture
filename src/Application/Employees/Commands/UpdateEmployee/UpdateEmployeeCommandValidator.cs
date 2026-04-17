@@ -31,9 +31,9 @@ public class UpdateEmployeeCommandValidator : AbstractValidator<UpdateEmployeeCo
             .Matches(@"^[\p{L}]+$").WithMessage("Last name must contain letters only.");
 
         RuleFor(c => c.PersonalMobileNumber)
-            .NotEmpty()
             .Length(12).WithMessage("Personal mobile number must be exactly 12 characters.")
-            .Must(n => n!.StartsWith("90")).WithMessage("Personal mobile number must start with '90'.");
+            .Must(n => n!.StartsWith("90")).WithMessage("Personal mobile number must start with '90'.")
+            .When(c => !string.IsNullOrEmpty(c.PersonalMobileNumber));
 
         RuleFor(c => c.ActivePassiveCode)
             .NotEmpty();
