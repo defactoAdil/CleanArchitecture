@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.Domain.Entities;
+using CleanArchitecture.Domain.Entities;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CleanArchitecture.Application.Common.Interfaces;
 
@@ -8,5 +9,9 @@ public interface IApplicationDbContext
 
     DbSet<TodoItem> TodoItems { get; }
 
+    DbSet<Employee> Employees { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }
