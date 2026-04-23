@@ -22,7 +22,7 @@ public class GetEmployeeLookupsQueryHandler : IRequestHandler<GetEmployeeLookups
         var isAdmin = _user.Roles?.Contains(Roles.HumanResourcesAdminSourceTypes) ?? false;
 
         var sourceTypes = isAdmin
-            ? new[] { SourceType.SAP, SourceType.OzonTekstil, SourceType.Efruz, SourceType.Ecrou, SourceType.All }
+            ? new[] { SourceType.SAP, SourceType.OzonTekstil, SourceType.Efruz, SourceType.Ecrou, SourceType.Other, SourceType.All }
             : new[] { SourceType.Other };
 
         var vm = new EmployeeLookupsVm
